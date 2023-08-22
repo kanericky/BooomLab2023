@@ -18,6 +18,13 @@ namespace Runtime
         None,
     }
 
+    public enum CardStatus
+    {
+        Complete,
+        SeparateTop,
+        SeparateBottom
+    }
+
     public enum Turn
     {
         Player,

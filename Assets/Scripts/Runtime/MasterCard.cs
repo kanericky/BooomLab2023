@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace Runtime
 {
@@ -7,7 +8,7 @@ namespace Runtime
     {
         public Card mainCard;
 
-        public CardPair[] SeparatedCardPairs;
+        public CardPair[] separatedCardPairs;
         
         [SerializeField] private Transform completeCardSlot;
         [SerializeField] private Transform separateCardSlot;
@@ -21,7 +22,7 @@ namespace Runtime
         {
             completeCardSlot.gameObject.SetActive(true);
             separateCardSlot.gameObject.SetActive(false);
-            
+
             SpawnMainCard();
             
         }
@@ -33,6 +34,17 @@ namespace Runtime
 
         public void SeparateCard()
         {
+            int randomSelectIndex = Random.Range(0, separatedCardPairs.Length);
+            CardPair randomSelectedCardPair = separatedCardPairs[randomSelectIndex];
+            
+            Card separatedCardA = randomSelectedCardPair.separateCardA;
+            Card separatedCardB = randomSelectedCardPair.separateCardB;
+
+            Card spawnedSeparatedCardA = Instantiate(separatedCardA, separateCardSlot);
+            Card spawnedSeparatedCardB = Instantiate(separatedCardB, separateCardSlot);
+
+            spawnedSeparatedCardA.transform.localPosition += new Vector3(0f, (spawnedSeparatedCardB.CardHeight + spawnedSeparatedCardA.CardHeight) / 2 + .5f, 0f);
+
             completeCardSlot.gameObject.SetActive(false);
             separateCardSlot.gameObject.SetActive(true);
         }

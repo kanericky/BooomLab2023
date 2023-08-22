@@ -73,7 +73,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 2
-  m_Sprite: {fileID: 21300000, guid: b587ab46b312aa941a1e44f79023a5c0, type: 3}
+  m_Sprite: {fileID: 21300000, guid: cb1e07687b0c04b45994f912b3c2fc86, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -157,7 +157,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 1
-  m_Sprite: {fileID: 21300000, guid: be5b7b242c074e346afbe879804eb514, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 9dfdb89c2da08214d9a5f97592c1e639, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -180,7 +180,7 @@ GameObject:
   - component: {fileID: 6992824676274205208}
   - component: {fileID: 6992824676274205210}
   m_Layer: 0
-  m_Name: Card 3 Main
+  m_Name: Card 3 Bottom 2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -218,9 +218,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cardPoint: 3
   cardStatus: 0
-  iconSprite: {fileID: 21300000, guid: b587ab46b312aa941a1e44f79023a5c0, type: 3}
-  patternSprite: {fileID: 21300000, guid: be5b7b242c074e346afbe879804eb514, type: 3}
-  backgroundSprite: {fileID: 21300000, guid: aa032d4f425a2344b8791a7f97b53edd, type: 3}
+  iconSprite: {fileID: 0}
+  patternSprite: {fileID: 21300000, guid: 9dfdb89c2da08214d9a5f97592c1e639, type: 3}
+  backgroundSprite: {fileID: 21300000, guid: 1c94f1f86c028ac45b7ca2a4e9e96aea, type: 3}
 --- !u!61 &6992824676274205210
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -234,7 +234,7 @@ BoxCollider2D:
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: 0.013244629, y: 0.013244629}
+  m_Offset: {x: 0.013244629, y: 0.013244271}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0, y: 0}
@@ -245,7 +245,7 @@ BoxCollider2D:
     adaptiveTiling: 0
   m_AutoTiling: 0
   serializedVersion: 2
-  m_Size: {x: 3.7284155, y: 6.218425}
+  m_Size: {x: 3.7284155, y: 3.4905012}
   m_EdgeRadius: 0
 --- !u!1 &6992824676490746544
 GameObject:
@@ -320,7 +320,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: aa032d4f425a2344b8791a7f97b53edd, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 1c94f1f86c028ac45b7ca2a4e9e96aea, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0

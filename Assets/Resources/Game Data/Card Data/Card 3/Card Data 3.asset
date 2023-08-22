@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b665aa7fcf1d4c5c91ff9ed3bd65bc38, type: 3}
+  m_Name: Card Data 3
+  m_EditorClassIdentifier: 
+  cardPoint: 3
+  cardStatus: 0
+  cardSprite: {fileID: 21300000, guid: aa032d4f425a2344b8791a7f97b53edd, type: 3}
+  SeparatedCardPairs:
+  - SeparatedCardDataA: {fileID: 11400000, guid: 6d4913deeea818b44926e2b3dc521c90, type: 2}
+    SeparatedCardDataB: {fileID: 11400000, guid: 059c285595cade44482534ee2628a52b, type: 2}
+  - SeparatedCardDataA: {fileID: 11400000, guid: a9cbe44a8731f4448b7c25aa5f2c0e6a, type: 2}
+    SeparatedCardDataB: {fileID: 11400000, guid: c4faa4650720492429560df5d328af44, type: 2}

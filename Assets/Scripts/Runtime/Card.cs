@@ -1,93 +1,181 @@
 using System;
+using DG.Tweening;
 using UnityEngine;
 
 namespace Runtime
 {
+    [RequireComponent(typeof(Collider2D), typeof(SpriteRenderer))]
     public class Card : MonoBehaviour
     {
-        [Header("Data - Numeric")]
+        [Header("Data")]
         public int cardPoint;
         public CardStatus cardStatus;
 
-        [Header("Data - Art")]
-        [SerializeField] private Sprite patternSprite;
-        [SerializeField] private Sprite backgroundSprite;
-
-        [Header("Sprite Renderer Components")] 
-        private SpriteRenderer _iconSpriteRenderer;
-        private SpriteRenderer _patternSpriteRenderer;
-        private SpriteRenderer _backgroundSpriteRenderer;
+        [Header("Components")] 
+        private SpriteRenderer _cardSpriteRendererComponent;
+        private BoxCollider2D _collider2DComponent;
         private MasterCard _masterCardComponent;
         
         // Dynamic assigned
         public CardType CardType { get; private set; }
-        private Color _cardColor;
         
+        private Sprite _cardSprite;
+        
+        
+        // Card graphic data
         public float CardHeight { get; private set; }
+        public float CardWidth { get; private set; }
+        
+        
+        // Local variables
+        private float _holdTime = 0f;
+        private float _moveDistance = 0f;
+        private bool _isMouseDown = false;
+        private bool _isInCombineMode = false;
 
-
-        private void Start()
-        {
-            _iconSpriteRenderer = gameObject.transform.GetChild(0).GetComponent<SpriteRenderer>();
-            _patternSpriteRenderer = gameObject.transform.GetChild(1).GetComponent<SpriteRenderer>();
-            _backgroundSpriteRenderer = gameObject.transform.GetChild(2).GetComponent<SpriteRenderer>();
-            _masterCardComponent = gameObject.GetComponentInParent<MasterCard>();
-            
-            SetupCardData(cardPoint, CardType.Attack);
-
-            CardHeight = _backgroundSpriteRenderer.sprite.bounds.size.y;
-        }
+        private Vector3 _originalPos;
+        private Vector3 _offset;
+        
 
         private void OnValidate()
         {
-            _iconSpriteRenderer = gameObject.transform.GetChild(0).GetComponent<SpriteRenderer>();
-            _patternSpriteRenderer = gameObject.transform.GetChild(1).GetComponent<SpriteRenderer>();
-            _backgroundSpriteRenderer = gameObject.transform.GetChild(2).GetComponent<SpriteRenderer>();
-            
-            _patternSpriteRenderer.sprite = patternSprite;
-            _backgroundSpriteRenderer.sprite = backgroundSprite;
+            AssignComponentReference();
         }
 
-        // Setup CardData dynamically
-        public void SetupCardData(int cardPoint, CardType cardType)
+        private void Update()
         {
+            if (_isMouseDown)
+            {
+                _holdTime += Time.deltaTime;
 
-            this.cardPoint = cardPoint;
-            CardType = cardType;
+                if (_holdTime > 1f && cardStatus == CardStatus.Complete)
+                {
+                    if (_moveDistance > .2f) return;
+                    _masterCardComponent.SeparateCard();
+                }
+            }
+        }
 
-            _cardColor = GameManager.Instance.AssignColor(cardType);
-            
-            AssignIcon(CardType);
-            AssignPointPattern();
-            AssignCardBackground();
+
+        private void AssignComponentReference()
+        {
+            _cardSpriteRendererComponent = GetComponent<SpriteRenderer>();
+            _collider2DComponent = GetComponent<BoxCollider2D>();
+            _masterCardComponent = gameObject.GetComponentInParent<MasterCard>();
+        }
         
+        
+        // Setup card data dynamically
+        public void SetupCardData(CardData cardData, CardType cardType)
+        {
+            cardPoint = cardData.cardPoint;
+            cardStatus = cardData.cardStatus;
+            CardType = cardType;
+            _cardSprite = cardData.cardSprite;
+
+            AssignComponentReference();
+            AssignCardSprite();
+            
+            // Set card width and height...
+            var bounds = _cardSpriteRendererComponent.bounds;
+            CardHeight = bounds.size.y;
+            CardWidth = bounds.size.x;
+            
+            SetupCardCollision();
         }
 
-        private void AssignIcon(CardType type)
+        private void SetupCardCollision()
         {
-            _iconSpriteRenderer.sprite = GameManager.Instance.AssignIcon(type);
-            _iconSpriteRenderer.color = _cardColor;
+            _collider2DComponent.offset = new Vector2(0, CardHeight / 2);
+            _collider2DComponent.size = new Vector2(CardWidth, CardHeight);
         }
 
-        private void AssignPointPattern()
+        private void AssignCardSprite()
         {
-            _patternSpriteRenderer.sprite = patternSprite;
-            _patternSpriteRenderer.color = _cardColor;
+            _cardSpriteRendererComponent.sprite = _cardSprite;
         }
 
-        private void AssignCardBackground()
+        private void OnMouseOver()
         {
-            _backgroundSpriteRenderer.sprite = backgroundSprite;
+            
         }
-    
-        private void OnMouseDown()
+
+        private void OnMouseExit()
         {
-            _masterCardComponent.SeparateCard();
+            
+        }
+
+        protected virtual void OnMouseDown()
+        {
+            _isMouseDown = true;
+            _originalPos = transform.position;
+
+            if (Camera.main == null) return;
+            
+            Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            mousePos.z = 0;
+
+            _offset = _originalPos - mousePos;
+
+        }
+
+        private void OnMouseUp()
+        {
+            _isMouseDown = false;
+            _holdTime = 0f;
+            
+            //TODO - Integrate success logic
+            if (_isInCombineMode)
+            {
+                _masterCardComponent.ExitCombineModeB();
+                _isInCombineMode = false;
+            }
+            
         }
 
         private void OnMouseDrag()
         {
-            Debug.Log("This card has been used");
+            if (Camera.main == null) return;
+            
+            Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            mousePos.z = 0;
+            
+            if(cardStatus == CardStatus.SeparateTop)
+            {
+                transform.position = mousePos + _offset;
+
+                if (!_isInCombineMode)
+                {
+                    _masterCardComponent.EnterCombineModeB();
+                    _isInCombineMode = true;
+                }
+            }
+
+            _moveDistance = Vector3.Distance(transform.position, _originalPos);
+        }
+
+        private void OnTriggerEnter2D(Collider2D other)
+        {
+            Debug.Log("3");
+            GameObject otherGameObject = other.gameObject;
+
+            if (otherGameObject.CompareTag("Top Detection") && otherGameObject.transform.parent != _masterCardComponent.transform)
+            {
+                Debug.Log("1");
+                otherGameObject.GetComponentInParent<MasterCard>().EnterCombineModeA();
+            }
+        }
+
+        private void OnTriggerExit2D(Collider2D other)
+        {
+            Debug.Log("4");
+            GameObject otherGameObject = other.gameObject;
+            if (otherGameObject.CompareTag("Top Detection") && otherGameObject.transform.parent != _masterCardComponent.transform)
+            {
+                Debug.Log("2");
+                otherGameObject.GetComponentInParent<MasterCard>().ExitCombineModeA();
+                _isInCombineMode = false;
+            }
         }
     }
 }

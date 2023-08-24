@@ -11,7 +11,7 @@ namespace Runtime
         public CardStatus cardStatus;
         
         [Header("Data - Art")] 
-        public Sprite cardSprite;
+        public Sprite[] cardSprites;
 
         [Header("Data - Separate Cards")] 
         public CardPair[] SeparatedCardPairs;

@@ -14,5 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cardPoint: 1
   cardStatus: 0
-  cardSprite: {fileID: 0}
-  SeparatedCardPairs: []
+  cardSprites:
+  - {fileID: 1317670106, guid: 85a0ff802eddb7043acc0ba87b7819bb, type: 3}
+  - {fileID: 1419400601, guid: 85a0ff802eddb7043acc0ba87b7819bb, type: 3}
+  - {fileID: 1669903816, guid: 85a0ff802eddb7043acc0ba87b7819bb, type: 3}
+  - {fileID: 1236955112, guid: 85a0ff802eddb7043acc0ba87b7819bb, type: 3}
+  SeparatedCardPairs:
+  - SeparatedCardDataA: {fileID: 11400000, guid: e38749702837f574aa3e19547c7a5c17, type: 2}
+    SeparatedCardDataB: {fileID: 11400000, guid: 6e3e817b76397264a9edfa1d4b5b516f, type: 2}

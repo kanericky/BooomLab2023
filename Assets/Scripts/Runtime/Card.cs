@@ -1,4 +1,7 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 using DG.Tweening;
 using UnityEngine;
 
@@ -20,8 +23,10 @@ namespace Runtime
         public CardType CardType { get; private set; }
         
         private Sprite _cardSprite;
-        
-        
+
+        private Stack<Tween> _tweensPool = new Stack<Tween>();
+
+
         // Card graphic data
         public float CardHeight { get; private set; }
         public float CardWidth { get; private set; }
@@ -32,14 +37,26 @@ namespace Runtime
         private float _moveDistance = 0f;
         private bool _isMouseDown = false;
         private bool _isInCombineMode = false;
+        private bool _canCombine = false;
+
 
         private Vector3 _originalPos;
         private Vector3 _offset;
-        
+        private Vector3 _defaultPos;
+
+        private MasterCard _otherMasterCard;
+        private CardData _cardData;
+
+        private Tween _dragMoveAnimation;
 
         private void OnValidate()
         {
             AssignComponentReference();
+        }
+
+        private void Start()
+        {
+            _defaultPos = transform.localPosition;
         }
 
         private void Update()
@@ -50,12 +67,11 @@ namespace Runtime
 
                 if (_holdTime > 1f && cardStatus == CardStatus.Complete)
                 {
-                    if (_moveDistance > .2f) return;
+                    if (_moveDistance > .1f) return;
                     _masterCardComponent.SeparateCard();
                 }
             }
         }
-
 
         private void AssignComponentReference()
         {
@@ -68,10 +84,11 @@ namespace Runtime
         // Setup card data dynamically
         public void SetupCardData(CardData cardData, CardType cardType)
         {
+            _cardData = cardData;
             cardPoint = cardData.cardPoint;
             cardStatus = cardData.cardStatus;
             CardType = cardType;
-            _cardSprite = cardData.cardSprite;
+            _cardSprite = GetCardSpriteByType(cardData, cardType);
 
             AssignComponentReference();
             AssignCardSprite();
@@ -82,6 +99,33 @@ namespace Runtime
             CardWidth = bounds.size.x;
             
             SetupCardCollision();
+        }
+
+        private Sprite GetCardSpriteByType(CardData cardData, CardType cardType)
+        {
+            Sprite[] cardSprites = cardData.cardSprites;
+                
+            switch (cardType)
+            {
+                case CardType.Attack:
+                    return cardSprites[0];
+                
+                case CardType.Defend:
+                    return cardSprites[1];
+                
+                case CardType.Treat:
+                    return cardSprites[2];
+                
+                case CardType.Default:
+                    return cardSprites[3];
+            }
+
+            return null;
+        }
+
+        public void RefreshCardSprite(CardType cardType)
+        {
+            _cardSpriteRendererComponent.sprite = GetCardSpriteByType(_cardData, cardType);
         }
 
         private void SetupCardCollision()
@@ -95,17 +139,30 @@ namespace Runtime
             _cardSpriteRendererComponent.sprite = _cardSprite;
         }
 
+        public MasterCard GetMasterCard()
+        {
+            return _masterCardComponent == null ? null : _masterCardComponent;
+        }
+
+
         private void OnMouseOver()
         {
-            
+            if (cardStatus == CardStatus.Complete || cardStatus == CardStatus.SeparateTop)
+            {
+                _tweensPool.Push(transform.DOScale(new Vector3(1.1f, 1.1f, 1.1f), .1f));
+            }
         }
 
         private void OnMouseExit()
         {
-            
+            if (cardStatus == CardStatus.Complete || cardStatus == CardStatus.SeparateTop)
+            {
+                _tweensPool.Push(transform.DOScale(Vector3.one, .1f));
+            }
         }
 
-        protected virtual void OnMouseDown()
+
+        private void OnMouseDown()
         {
             _isMouseDown = true;
             _originalPos = transform.position;
@@ -123,12 +180,34 @@ namespace Runtime
         {
             _isMouseDown = false;
             _holdTime = 0f;
-            
-            //TODO - Integrate success logic
-            if (_isInCombineMode)
+
+            if (cardStatus == CardStatus.SeparateTop)
             {
-                _masterCardComponent.ExitCombineModeB();
-                _isInCombineMode = false;
+                if (_isInCombineMode && _canCombine && _otherMasterCard != null)
+                {
+                    _tweensPool.Push(transform.DOScale(Vector3.one, .1f));
+                    _otherMasterCard.CombineCards(this);
+                    _canCombine = false;
+                    
+                }else if (_isInCombineMode)
+                {
+                    _masterCardComponent.ExitCombineModeB();
+                    _isInCombineMode = false;
+                }
+            }
+
+            if (cardStatus == CardStatus.Complete)
+            {
+                _dragMoveAnimation = transform.DOLocalMove(_defaultPos, .2f);
+                _tweensPool.Push(_dragMoveAnimation);
+                transform.localPosition = _defaultPos;
+                _masterCardComponent.StartIdleTweenAnimation();
+
+                if (_masterCardComponent.GetCanCheckout())
+                {
+                    LevelManager.Instance.CheckoutCard(_masterCardComponent);
+                    cardStatus = CardStatus.Checkedout;
+                }
             }
             
         }
@@ -139,6 +218,20 @@ namespace Runtime
             
             Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             mousePos.z = 0;
+            
+            if (cardStatus == CardStatus.Complete)
+            {
+                if (_moveDistance < .05f)
+                {
+                    _tweensPool.Push(transform.DOShakePosition(duration: .1f, strength: _holdTime * .2f));
+                }
+                else
+                {
+                    _masterCardComponent.KillIdleTweenAnimation();
+                    _dragMoveAnimation = transform.DOMove(mousePos + _offset, .2f);
+                    _tweensPool.Push(_dragMoveAnimation);
+                }
+            }
             
             if(cardStatus == CardStatus.SeparateTop)
             {
@@ -154,28 +247,50 @@ namespace Runtime
             _moveDistance = Vector3.Distance(transform.position, _originalPos);
         }
 
+        public void DisableCollision2D()
+        {
+            _collider2DComponent.enabled = false;
+        }
+
         private void OnTriggerEnter2D(Collider2D other)
         {
-            Debug.Log("3");
             GameObject otherGameObject = other.gameObject;
 
-            if (otherGameObject.CompareTag("Top Detection") && otherGameObject.transform.parent != _masterCardComponent.transform)
+            if (otherGameObject.CompareTag("Top Detection") && otherGameObject.transform.parent != _masterCardComponent.transform && cardStatus == CardStatus.SeparateTop)
             {
-                Debug.Log("1");
-                otherGameObject.GetComponentInParent<MasterCard>().EnterCombineModeA();
+                _otherMasterCard = otherGameObject.GetComponentInParent<MasterCard>();
+                if (_otherMasterCard != null && _otherMasterCard.masterCardStatus == CardStatus.Separated)
+                {
+                    _otherMasterCard.EnterCombineModeA();
+                    _canCombine = true;
+                }
             }
         }
 
         private void OnTriggerExit2D(Collider2D other)
         {
-            Debug.Log("4");
             GameObject otherGameObject = other.gameObject;
             if (otherGameObject.CompareTag("Top Detection") && otherGameObject.transform.parent != _masterCardComponent.transform)
             {
-                Debug.Log("2");
-                otherGameObject.GetComponentInParent<MasterCard>().ExitCombineModeA();
-                _isInCombineMode = false;
+                _otherMasterCard = otherGameObject.GetComponentInParent<MasterCard>();
+                if (_otherMasterCard != null && _otherMasterCard.masterCardStatus == CardStatus.Separated)
+                {
+                    _otherMasterCard.ExitCombineModeA();
+                    _otherMasterCard = null;
+                    _isInCombineMode = false;
+                    _canCombine = false;
+                }
             }
         }
+
+        private void OnDestroy()
+        {
+            while (_tweensPool.Count != 0)
+            {
+                _tweensPool.Pop().Kill();
+            }
+        }
+
+
     }
 }

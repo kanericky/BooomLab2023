@@ -21,13 +21,19 @@ namespace Runtime
     public enum CardStatus
     {
         Complete,
+        Separated,
         SeparateTop,
-        SeparateBottom
+        SeparateBottom,
+        Combined,
+        Checkedout,
     }
 
     public enum Turn
     {
+        Start,
         Player,
-        Enemy
+        Enemy,
+        Win,
+        Lose,
     }
 }

@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b665aa7fcf1d4c5c91ff9ed3bd65bc38, type: 3}
   m_Name: Card Data 8 - Down 3
   m_EditorClassIdentifier: 
-  cardPoint: 1
+  cardPoint: 3
   cardStatus: 3
   cardSprites:
   - {fileID: 473448613, guid: 784fc61851a6cd34ab5f744bf9bcfbbd, type: 3}

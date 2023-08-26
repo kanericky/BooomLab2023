@@ -66,6 +66,7 @@ namespace Gameplay
                     CardType.Treat,
                     CardType.Default,
                     CardType.Default,
+                    CardType.Default,
                 };
 
                 resultCartTypeArray[0] = actionPool[Random.Range(0, 3)];

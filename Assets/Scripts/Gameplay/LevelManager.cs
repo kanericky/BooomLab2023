@@ -18,6 +18,7 @@ namespace Gameplay
 
         [SerializeField] private Deck cardDeck;
         [SerializeField] private CheckoutDetectZone checkoutDetectZone;
+        [SerializeField] private Camera mainCamera;
 
         private MasterCard _playerCard;
         private MasterCard _enemyCard;
@@ -37,7 +38,10 @@ namespace Gameplay
             UIManager.Instance.InitPlayerUIInfo(playerController.initHealth, playerController.initArmor);
             UIManager.Instance.InitEnemyUIInfo(enemyController.initHealth, enemyController.initArmor);
 
+            mainCamera = FindObjectOfType<Camera>();
+
             GameObject[] uxSetups = FindObjectsOfType<GameObject>();
+
             foreach (var go in uxSetups)
             {
                 IUxSetup uxSetup = go.GetComponent<IUxSetup>();
@@ -161,7 +165,7 @@ namespace Gameplay
                 yield return new WaitForSeconds(.2f);
                 
                 Vector3 cachePos = playerSpriteTrans.position;
-                
+
                 switch (_playerCard.masterCardType)
                 {
                     case CardType.Attack:
@@ -173,6 +177,7 @@ namespace Gameplay
                         {
                             playerSpriteTrans.DOMove(cachePos, 0.2f).SetDelay(.05f);
                             playerSpriteTrans.DOMoveZ(playerSpriteTrans.position.z + 2, .1f).SetDelay(.1f);
+                            mainCamera.DOShakeRotation(duration: .1f, strength: _playerCard.masterCardPoint * 2f);
                         };
                         enemySpriteTrans.DOShakeRotation(duration: 1f, strength: 20f).SetDelay(.15f);
                         
@@ -212,6 +217,7 @@ namespace Gameplay
                         enemySpriteTrans.DOMove(playerSpriteTrans.position, 0.15f).onComplete += () => {
                             enemySpriteTrans.DOMove(cachePos, 0.2f).SetDelay(.05f);
                             enemySpriteTrans.DOMoveZ(enemySpriteTrans.position.z + 1, .2f).SetDelay(.1f);
+                            mainCamera.DOShakeRotation(duration: .1f * _playerCard.masterCardPoint, strength: _playerCard.masterCardPoint * 2f);
                         };
                         playerSpriteTrans.DOShakeRotation(duration: 1f, strength: 20f).SetDelay(.15f);;
                         break;
